@@ -59,27 +59,38 @@ def create_main_visualization(results):
     plt.tight_layout()
     return fig
 
-# --- 3. Biểu đồ Waterfall (MỚI: Dùng Plotly Express) ---
+# --- 3. Biểu đồ Waterfall (ĐÃ FIX LOGIC) ---
 def create_waterfall_chart(results):
     advance_amount = results["Khoản tiền Ứng trước (Advance Amount)"]
     service_fee = results["Hoa hồng phí (Service Fee)"]
     discount_interest = results["Lãi suất chiết khấu (Discount Interest)"]
-    net_cash = results["Số tiền Thực nhận (Net Cash Received)"]
 
-    # Dữ liệu cho Plotly Waterfall
-    data = {
-        "Giao Dịch": ["Khởi Điểm (Ứng trước)", "Chi phí Dịch vụ", "Chi phí Lãi suất", "Net Cash"],
-        "Giá Trị": [advance_amount, -service_fee, -discount_interest, net_cash],
-        "Loại": ["intermediate", "decrease", "decrease", "total"]
-    }
-    df = pd.DataFrame(data)
+    # --- Chuẩn bị dữ liệu cho Plotly Waterfall ---
+    
+    # 1. Nhãn (Categories/X-axis)
+    categories = ["Khoản Ứng trước", "(-) Phí Dịch vụ", "(-) Chi phí Lãi suất", "Net Cash (Kết quả)"]
+    
+    # 2. Giá trị (Y-axis): Cột đầu tiên là tổng (tổng cộng dồn), các cột sau là thay đổi
+    # Logic: [Advance Amount] -> [-Fee] -> [-Interest] -> [Net Cash]
+    data_values = [
+        advance_amount, 
+        -service_fee, 
+        -discount_interest, 
+        0 # Plotly sẽ tự động tính toán giá trị cột "total"
+    ]
+    
+    # 3. Loại hình (Measure): Xác định cách Plotly xử lý cột
+    measures = ["intermediate", "decrease", "decrease", "total"]
+
+    df = pd.DataFrame({'Giao Dịch': categories, 'Giá Trị': data_values, 'Loại': measures})
 
     fig = go.Figure(go.Waterfall(
         name = "Dòng tiền", orientation = "v",
         measure = df["Loại"],
         x = df["Giao Dịch"],
         textposition = "outside",
-        text = [f'{v:,.0f}' for v in df["Giá Trị"]],
+        # Sử dụng thuộc tính text để định dạng giá trị hiển thị trên cột
+        text = [f'{v:,.0f}' if m != 'total' else f'{results["Số tiền Thực nhận (Net Cash Received)"]:,.0f}' for v, m in zip(df["Giá Trị"], df["Loại"])],
         y = df["Giá Trị"],
         connector = {"line":{"color":"rgb(63, 63, 63)"}},
     ))
