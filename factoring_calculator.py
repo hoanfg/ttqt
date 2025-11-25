@@ -75,51 +75,38 @@ def create_main_visualization(results):
     plt.tight_layout()
     return fig
 
-# --- 3. Biểu đồ Thay thế Waterfall (Sử dụng Grouped Bar Chart bằng Matplotlib) ---
-def create_waterfall_chart(results):
-    advance_amount = results["Khoản tiền Ứng trước (Advance Amount)"]
+# --- 3. Biểu đồ MỚI: Tương quan Chi phí (Pie Chart) ---
+def create_cost_composition_chart(results):
+    service_fee = results["Hoa hồng phí (Service Fee)"]
+    discount_interest = results["Lãi suất chiết khấu (Discount Interest)"]
     total_costs = results["Tổng chi phí (Total Cost)"]
-    net_cash = results["Số tiền Thực nhận (Net Cash Received)"]
-
-    # Dữ liệu cho biểu đồ cột so sánh
-    categories = ['Khoản Ứng trước', 'Số tiền Thực nhận', 'Tổng Chi phí']
-    values = [advance_amount, net_cash, total_costs]
     
-    # Màu sắc nhất quán với biểu đồ Kỳ hạn (Xanh dương)
-    colors = ['#3498DB', '#2ECC71', '#E74C3C'] # Xanh dương, Xanh lá, Đỏ
+    # Dữ liệu cho biểu đồ tròn
+    cost_data = pd.DataFrame({
+        'Thành phần': ['Hoa hồng phí', 'Chi phí Lãi suất'],
+        'Giá trị': [service_fee, discount_interest]
+    })
     
-    # Thiết lập màu nền trắng cho Matplotlib và kích thước
-    plt.style.use('default')
-    # Giữ kích thước nhỏ gọn như biểu đồ Kỳ hạn
-    fig, ax = plt.subplots(figsize=(7, 3.8), facecolor='white') 
+    # Thiết lập nền trắng và kích thước
+    plt.style.use('default') 
+    fig, ax = plt.subplots(figsize=(6, 6), facecolor='white') 
+
+    # Tạo biểu đồ tròn
+    wedges, texts, autotexts = ax.pie(
+        cost_data['Giá trị'], 
+        labels=cost_data['Thành phần'], 
+        autopct=lambda p: '{:.1f}% ({:,.0f} USD)'.format(p, p * total_costs / 100),
+        colors=['#FFC107', '#F44336'], # Vàng và Đỏ
+        startangle=90,
+        wedgeprops={'edgecolor': 'black'}
+    )
     
-    # Tạo biểu đồ cột
-    bars = ax.bar(categories, values, color=colors) 
-    
-    # Thiết lập tiêu đề và nhãn trục nhất quán
-    ax.set_title('So sánh Dòng tiền (Advance vs. Net Cash)', fontsize=14, color='black')
-    ax.set_ylabel('Giá trị (USD)', fontsize=12, color='black') # Y-axis title
-    ax.set_xlabel('Chỉ số Dòng tiền', fontsize=12, color='black') # X-axis title
-    ax.tick_params(axis='x', colors='black', rotation=15)
-    ax.tick_params(axis='y', colors='black')
-    ax.set_facecolor('white')
+    ax.set_title(f'2. Cơ cấu Tổng Chi phí: {total_costs:,.2f} USD', fontsize=14, color='black')
+    ax.axis('equal') # Đảm bảo biểu đồ tròn hoàn hảo
 
-    # Grid và Border
-    ax.grid(axis='y', linestyle='--', alpha=0.7, color='lightgray')
-    for spine in ax.spines.values():
-        spine.set_edgecolor('black')
-
-    # Thêm nhãn giá trị trên đỉnh cột
-    for bar in bars:
-        height = bar.get_height()
-        # FIX: Định dạng nhãn giá trị (dùng float với 2 chữ số thập phân cho giá trị nhỏ)
-        ax.text(bar.get_x() + bar.get_width()/2.0, height + (max(values) * 0.02), 
-                f'{height:,.2f} USD', ha='center', fontsize=10, color='black') 
-
-    plt.ylim(0, max(values) * 1.15)
     plt.tight_layout()
     return fig
-
+    
 # --- 4. Biểu đồ Phân tích Độ nhạy Kỳ hạn (Matplotlib - FIX màu và nền) ---
 def create_tenor_sensitivity_chart(advance_amount, advance_rate, service_fee_rate, discount_rate_annual):
     tenor_scenarios = [3, 6, 9, 12]
@@ -211,9 +198,9 @@ if advance_amount and advance_rate:
         st.markdown("---")
 
         # KHU VỰC BIỂU ĐỒ 2: Dòng tiền (Waterfall - MỚI)
-        st.subheader("2. Dòng tiền và Chi phí Giảm trừ (Biểu đồ Waterfall - Tương tác)")
-        fig_waterfall = create_waterfall_chart(results)
-        st.plotly_chart(fig_waterfall, use_container_width=True)
+        st.subheader("2. Phân tích Cơ cấu Chi phí (Pie Chart)")
+        fig_cost_comp = create_cost_composition_chart(results)
+        st.pyplot(fig_cost_comp)
         
         st.markdown("---")
 
@@ -226,6 +213,7 @@ if advance_amount and advance_rate:
             discount_rate_annual
         )
         st.pyplot(fig_tenor)
+
 
 
 
