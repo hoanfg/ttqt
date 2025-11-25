@@ -105,6 +105,7 @@ def create_waterfall_chart(results):
         totals = {"marker":{"color":"#2196F3"}},    
     ))
 
+    # --- PHẦN ĐÃ SỬA: Thêm tiêu đề trục và frame ---
     fig.update_layout(
         title = "Dòng tiền và Chi phí Giảm trừ",
         height=450,
@@ -112,7 +113,15 @@ def create_waterfall_chart(results):
         showlegend = False,
         plot_bgcolor='white',      
         paper_bgcolor='white',     
-        font=dict(color="black")   
+        font=dict(color="black"),
+        
+        # Thêm tiêu đề trục
+        xaxis_title="Giao dịch",
+        yaxis_title="Giá trị (USD)",
+        
+        # Thêm frame và border (Tương tự như Matplotlib border)
+        xaxis=dict(showline=True, linewidth=1, linecolor='black'),
+        yaxis=dict(showline=True, linewidth=1, linecolor='black')
     )
     return fig
 
@@ -222,3 +231,4 @@ if advance_amount and advance_rate:
             discount_rate_annual
         )
         st.pyplot(fig_tenor)
+
