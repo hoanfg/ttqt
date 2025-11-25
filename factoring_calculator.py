@@ -75,7 +75,7 @@ def create_main_visualization(results):
     plt.tight_layout()
     return fig
 
-# --- 3. Biểu đồ Waterfall (Plotly - Giữ nguyên) ---
+# --- 3. Biểu đồ Waterfall (ĐÃ FIX: FORCE SHOW AXIS TITLES) ---
 def create_waterfall_chart(results):
     advance_amount = results["Khoản tiền Ứng trước (Advance Amount)"]
     service_fee = results["Hoa hồng phí (Service Fee)"]
@@ -105,7 +105,7 @@ def create_waterfall_chart(results):
         totals = {"marker":{"color":"#2196F3"}},    
     ))
 
-    # --- PHẦN ĐÃ SỬA: Thêm tiêu đề trục và frame ---
+    # --- PHẦN ĐÃ SỬA: Thêm tiêu đề trục và Frame ---
     fig.update_layout(
         title = "Dòng tiền và Chi phí Giảm trừ",
         height=450,
@@ -115,13 +115,19 @@ def create_waterfall_chart(results):
         paper_bgcolor='white',     
         font=dict(color="black"),
         
-        # Thêm tiêu đề trục
-        xaxis_title="Giao dịch",
-        yaxis_title="Giá trị (USD)",
-        
-        # Thêm frame và border (Tương tự như Matplotlib border)
-        xaxis=dict(showline=True, linewidth=1, linecolor='black'),
-        yaxis=dict(showline=True, linewidth=1, linecolor='black')
+        # SỬ DỤNG layout.xaxis và layout.yaxis để hiển thị nhãn trục rõ ràng
+        xaxis=dict(
+            title='Giao dịch', # FORCE X-AXIS TITLE
+            showline=True, 
+            linewidth=1, 
+            linecolor='black'
+        ),
+        yaxis=dict(
+            title='Giá trị (USD)', # FORCE Y-AXIS TITLE
+            showline=True, 
+            linewidth=1, 
+            linecolor='black'
+        )
     )
     return fig
 
@@ -231,4 +237,5 @@ if advance_amount and advance_rate:
             discount_rate_annual
         )
         st.pyplot(fig_tenor)
+
 
