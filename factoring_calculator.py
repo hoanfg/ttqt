@@ -75,63 +75,46 @@ def create_main_visualization(results):
     plt.tight_layout()
     return fig
 
-# --- 3. Biểu đồ Thay thế Waterfall (Sử dụng Grouped Bar Chart với Plotly) ---
+# --- 3. Biểu đồ Thay thế Waterfall (Sử dụng Grouped Bar Chart bằng Matplotlib) ---
 def create_waterfall_chart(results):
     advance_amount = results["Khoản tiền Ứng trước (Advance Amount)"]
     total_costs = results["Tổng chi phí (Total Cost)"]
     net_cash = results["Số tiền Thực nhận (Net Cash Received)"]
 
     # Dữ liệu cho biểu đồ cột so sánh
-    data = pd.DataFrame({
-        'Chỉ số': ['Khoản Ứng trước', 'Tổng Chi phí', 'Số tiền Thực nhận'],
-        'Giá trị': [advance_amount, total_costs, net_cash],
-        'Loại': ['Khởi điểm', 'Chi phí', 'Kết quả']
-    })
+    categories = ['Khoản Ứng trước', 'Số tiền Thực nhận', 'Tổng Chi phí']
+    values = [advance_amount, net_cash, total_costs]
+    
+    # Màu sắc nhất quán
+    colors = ['#3498DB', '#2ECC71', '#E74C3C'] # Xanh dương, Xanh lá, Đỏ
+    
+    # Thiết lập màu nền trắng cho Matplotlib và kích thước
+    plt.style.use('default')
+    fig, ax = plt.subplots(figsize=(7, 3.8), facecolor='white') 
+    
+    # Tạo biểu đồ cột
+    bars = ax.bar(categories, values, color=colors) 
+    
+    ax.set_title('So sánh Dòng tiền (Advance vs. Net Cash)', fontsize=14, color='black')
+    ax.set_ylabel('Giá trị (USD)', fontsize=12, color='black')
+    ax.set_xlabel('Chỉ số Dòng tiền', fontsize=12, color='black')
+    ax.tick_params(axis='x', colors='black', rotation=15)
+    ax.tick_params(axis='y', colors='black')
+    ax.set_facecolor('white')
 
-    # Tạo biểu đồ cột đơn giản (Grouped Bar)
-    fig = px.bar(
-        data, 
-        x='Chỉ số', 
-        y='Giá trị', 
-        color='Loại', # Dùng cột Loại để phân biệt màu sắc
-        text='Giá trị',
-        color_discrete_map={
-            'Khởi điểm': '#3498DB', # Xanh dương cho Khoản ứng trước
-            'Chi phí': '#E74C3C',    # Đỏ cho Tổng chi phí
-            'Kết quả': '#2ECC71'     # Xanh lá cho Net Cash
-        },
-        title="Dòng tiền và Chi phí Giảm trừ"
-    )
+    # Border và Grid
+    ax.grid(axis='y', linestyle='--', alpha=0.7, color='lightgray')
+    for spine in ax.spines.values():
+        spine.set_edgecolor('black')
 
-    # Thêm định dạng chi tiết cho Plotly
-    fig.update_traces(
-        texttemplate='%{y:,.0f} USD', 
-        textposition='outside'
-    )
+    # Thêm nhãn giá trị trên đỉnh cột
+    for bar in bars:
+        height = bar.get_height()
+        ax.text(bar.get_x() + bar.get_width()/2.0, height + (max(values) * 0.02), 
+                f'{height:,.0f} USD', ha='center', fontsize=10, color='black')
 
-    fig.update_layout(
-        title="Dòng tiền và Chi phí Giảm trừ",
-        height=450,
-        width=800,
-        showlegend = False,
-        plot_bgcolor='white',      
-        paper_bgcolor='white',     
-        font=dict(color="black"),
-        
-        # Thêm frame và tiêu đề trục
-        xaxis=dict(
-            title='Chỉ số Giao dịch', 
-            showline=True, 
-            linewidth=1, 
-            linecolor='black'
-        ),
-        yaxis=dict(
-            title='Giá trị (USD)', 
-            showline=True, 
-            linewidth=1, 
-            linecolor='black'
-        )
-    )
+    plt.ylim(0, max(values) * 1.15)
+    plt.tight_layout()
     return fig
 
 # --- 4. Biểu đồ Phân tích Độ nhạy Kỳ hạn (Matplotlib - FIX màu và nền) ---
@@ -240,6 +223,7 @@ if advance_amount and advance_rate:
             discount_rate_annual
         )
         st.pyplot(fig_tenor)
+
 
 
 
