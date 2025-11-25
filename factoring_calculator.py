@@ -47,7 +47,7 @@ def create_main_visualization(results):
         'Giá trị (USD)': [net_cash, total_costs, reserve]
     })
     
-    fig, ax = plt.subplots(figsize=(8, 4))
+    fig, ax = plt.subplots(figsize=(9, 4.5))
     bars = ax.barh(data['Thành phần'], data['Giá trị (USD)'], color=['#4CAF50', '#F44336', '#FFC107'])
     
     ax.set_title(f'Cơ cấu Trị giá Nợ phải thu: {total_ar:,.2f} USD', fontsize=14)
@@ -85,7 +85,7 @@ def create_sensitivity_chart(advance_amount, advance_rate, service_fee_rate, ten
         
     df = pd.DataFrame(sensitivity_data)
 
-    fig, ax = plt.subplots(figsize=(6, 2))
+    fig, ax = plt.subplots(figsize=(7.5, 3.8))
     bars = ax.bar(df['Lãi suất'], df['Net Cash'], color=['#FFC107', '#4CAF50', '#F44336'])
     
     ax.set_title('Độ nhạy: Net Cash theo Lãi suất', fontsize=14)
@@ -157,4 +157,5 @@ if advance_amount and advance_rate:
             tenor_months
         )
         st.pyplot(fig_sensitivity)
+
 
