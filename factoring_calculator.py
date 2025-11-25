@@ -60,28 +60,38 @@ def create_main_visualization(results):
     plt.xlim(0, total_ar * 1.1)
     return fig
 
-# --- 3. Biểu đồ Waterfall (MỚI) ---
+# --- 3. Biểu đồ Waterfall ---
 def create_waterfall_chart(results):
     """Trực quan hóa dòng tiền: Advance -> Chi phí -> Net Cash."""
     
+    advance_amount = results["Khoản tiền Ứng trước (Advance Amount)"]
+    service_fee = results["Hoa hồng phí (Service Fee)"]
+    discount_interest = results["Lãi suất chiết khấu (Discount Interest)"]
+    net_cash = results["Số tiền Thực nhận (Net Cash Received)"]
+    
     # Chuẩn bị dữ liệu cho biểu đồ Waterfall
     data = [
-        results["Khoản tiền Ứng trước (Advance Amount)"],
-        -results["Hoa hồng phí (Service Fee)"],  # Chi phí (giảm)
-        -results["Lãi suất chiết khấu (Discount Interest)"], # Chi phí (giảm)
-        results["Số tiền Thực nhận (Net Cash Received)"]
+        advance_amount,
+        -service_fee,        # Chi phí (giảm)
+        -discount_interest,  # Chi phí (giảm)
+        net_cash - advance_amount + service_fee + discount_interest # Cần tính Net Cash
     ]
     index = [
-        'Khoản Ứng trước',
+        'Khoản Ứng trước (Start)',
         '(-) Hoa hồng phí',
         '(-) Lãi suất',
-        'Số tiền Thực nhận'
+        'Số tiền Thực nhận (End)'
     ]
+    names = ['Khoản Ứng trước', 'Hoa hồng phí', 'Lãi suất', 'Net Cash']
     
-    fig, ax = wfc.plot(index, data, figsize=(8, 4), 
-                       net_label='Số tiền Thực nhận', 
-                       rotation_label=0, 
-                       threshold=0.01)
+    # Tạo giá trị thay đổi (+/-)
+    changes = [advance_amount, -service_fee, -discount_interest, net_cash]
+    
+    # Tạo biểu đồ Waterfall
+    fig, ax = wfc.plot(names, changes, 
+                       net_label='Net Cash', 
+                       figsize=(8, 4), 
+                       rotation_label=0)
     
     # Định dạng lại tiêu đề
     ax.set_title("Dòng tiền và Chi phí Giảm trừ", fontsize=14)
@@ -186,3 +196,4 @@ if advance_amount and advance_rate:
             discount_rate_annual
         )
         st.pyplot(fig_tenor)
+
