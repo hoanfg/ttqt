@@ -85,24 +85,26 @@ def create_waterfall_chart(results):
     categories = ['Khoản Ứng trước', 'Số tiền Thực nhận', 'Tổng Chi phí']
     values = [advance_amount, net_cash, total_costs]
     
-    # Màu sắc nhất quán
+    # Màu sắc nhất quán với biểu đồ Kỳ hạn (Xanh dương)
     colors = ['#3498DB', '#2ECC71', '#E74C3C'] # Xanh dương, Xanh lá, Đỏ
     
     # Thiết lập màu nền trắng cho Matplotlib và kích thước
     plt.style.use('default')
+    # Giữ kích thước nhỏ gọn như biểu đồ Kỳ hạn
     fig, ax = plt.subplots(figsize=(7, 3.8), facecolor='white') 
     
     # Tạo biểu đồ cột
     bars = ax.bar(categories, values, color=colors) 
     
+    # Thiết lập tiêu đề và nhãn trục nhất quán
     ax.set_title('So sánh Dòng tiền (Advance vs. Net Cash)', fontsize=14, color='black')
-    ax.set_ylabel('Giá trị (USD)', fontsize=12, color='black')
-    ax.set_xlabel('Chỉ số Dòng tiền', fontsize=12, color='black')
+    ax.set_ylabel('Giá trị (USD)', fontsize=12, color='black') # Y-axis title
+    ax.set_xlabel('Chỉ số Dòng tiền', fontsize=12, color='black') # X-axis title
     ax.tick_params(axis='x', colors='black', rotation=15)
     ax.tick_params(axis='y', colors='black')
     ax.set_facecolor('white')
 
-    # Border và Grid
+    # Grid và Border
     ax.grid(axis='y', linestyle='--', alpha=0.7, color='lightgray')
     for spine in ax.spines.values():
         spine.set_edgecolor('black')
@@ -110,8 +112,9 @@ def create_waterfall_chart(results):
     # Thêm nhãn giá trị trên đỉnh cột
     for bar in bars:
         height = bar.get_height()
+        # FIX: Định dạng nhãn giá trị (dùng float với 2 chữ số thập phân cho giá trị nhỏ)
         ax.text(bar.get_x() + bar.get_width()/2.0, height + (max(values) * 0.02), 
-                f'{height:,.0f} USD', ha='center', fontsize=10, color='black')
+                f'{height:,.2f} USD', ha='center', fontsize=10, color='black') 
 
     plt.ylim(0, max(values) * 1.15)
     plt.tight_layout()
@@ -223,6 +226,7 @@ if advance_amount and advance_rate:
             discount_rate_annual
         )
         st.pyplot(fig_tenor)
+
 
 
 
