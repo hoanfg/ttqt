@@ -75,60 +75,87 @@ def create_main_visualization(results):
     plt.tight_layout()
     return fig
 
-# --- 3. Biểu đồ Waterfall (ĐÃ FIX: FORCE SHOW AXIS TITLES) ---
+# --- 3. Biểu đồ Thay thế Waterfall (Sử dụng Stacked Bar với Plotly) ---
 def create_waterfall_chart(results):
     advance_amount = results["Khoản tiền Ứng trước (Advance Amount)"]
     service_fee = results["Hoa hồng phí (Service Fee)"]
     discount_interest = results["Lãi suất chiết khấu (Discount Interest)"]
+    net_cash = results["Số tiền Thực nhận (Net Cash Received)"]
 
-    categories = ["Khoản Ứng trước", "(-) Phí Dịch vụ", "(-) Chi phí Lãi suất", "Net Cash (Kết quả)"]
-    data_values = [
-        advance_amount, 
-        -service_fee, 
-        -discount_interest, 
-        0 
-    ]
-    measures = ["intermediate", "decrease", "decrease", "total"]
+    # Dữ liệu cho biểu đồ xếp chồng (Stacked Bar Chart)
+    # Chúng ta sẽ hiển thị 3 cột: Khoản ứng trước, Chi phí, và Net Cash
+    
+    data = {
+        'Hạng mục': ['Khoản Ứng trước (Start)', 'Chi phí (Total Cost)', 'Net Cash (End)'],
+        'Giá trị': [advance_amount, results["Tổng chi phí (Total Cost)"], net_cash]
+    }
+    df = pd.DataFrame(data)
 
-    df = pd.DataFrame({'Giao Dịch': categories, 'Giá Trị': data_values, 'Loại': measures})
+    # Để trực quan hóa 3 cột chính, ta dùng biểu đồ cột đơn (Single Bar)
+    # Để thể hiện mối quan hệ trừ bớt (tương tự Waterfall) ta dùng biểu đồ xếp chồng TƯƠNG ĐỐI
+    
+    # Chuẩn bị dữ liệu cho biểu đồ hiển thị chi phí giảm trừ từ Khoản ứng trước (Net Cash)
+    
+    categories = ['Phần chi phí', 'Phần thực nhận']
+    
+    # Cấu trúc: 
+    # Cột 1: Chi phí + Net Cash = Advance (Cột gốc)
+    # Cột 2: Net Cash (Cột kết quả)
+    
+    plot_data = pd.DataFrame({
+        'Thành phần': ['Net Cash', 'Chi phí'],
+        'Khởi điểm ứng trước': [net_cash, results["Tổng chi phí (Total Cost)"]],
+        'Kết quả': [net_cash, 0] # Chi phí là 0 ở cột Net Cash
+    }).set_index('Thành phần')
 
-    fig = go.Figure(go.Waterfall(
-        name = "Dòng tiền", orientation = "v",
-        measure = df["Loại"],
-        x = df["Giao Dịch"],
-        textposition = "outside",
-        text = [f'{v:,.0f}' if m != 'total' else f'{results["Số tiền Thực nhận (Net Cash Received)"]:,.0f}' for v, m in zip(df["Giá Trị"], df["Loại"])],
-        y = df["Giá Trị"],
-        connector = {"line":{"color":"rgb(63, 63, 63)"}},
-        increasing = {"marker":{"color":"#4CAF50"}},
-        decreasing = {"marker":{"color":"#F44336"}},
-        totals = {"marker":{"color":"#2196F3"}},    
-    ))
 
-    # --- PHẦN ĐÃ SỬA: Thêm tiêu đề trục và Frame ---
+    fig = go.Figure(data=[
+        # Lớp dưới: Net Cash (Màu xanh lá cây)
+        go.Bar(
+            name='Số tiền Thực nhận',
+            x=['Khởi điểm ứng trước', 'Kết quả'],
+            y=[net_cash, net_cash],
+            marker_color='#4CAF50',
+            text=[f'{net_cash:,.0f}', f'{net_cash:,.0f}'],
+            textposition='inside',
+            hoverinfo='name+y'
+        ),
+        # Lớp trên: Chi phí (Màu đỏ) - Chỉ xuất hiện ở cột Khởi điểm
+        go.Bar(
+            name='Tổng Chi phí (Giảm trừ)',
+            x=['Khởi điểm ứng trước', 'Kết quả'],
+            y=[results["Tổng chi phí (Total Cost)"], 0],
+            marker_color='#F44336',
+            text=[f'-{results["Tổng chi phí (Total Cost)"]:,.0f}', ''],
+            textposition='inside',
+            hoverinfo='name+y'
+        )
+    ])
+    
+    # Cập nhật layout để làm rõ mối quan hệ
     fig.update_layout(
-        title = "Dòng tiền và Chi phí Giảm trừ",
+        barmode='stack',
+        title="Dòng tiền: Khoản Ứng trước và Giảm trừ Chi phí",
         height=450,
         width=800,
-        showlegend = False,
+        showlegend = True,
         plot_bgcolor='white',      
         paper_bgcolor='white',     
         font=dict(color="black"),
-        
-        # SỬ DỤNG layout.xaxis và layout.yaxis để hiển thị nhãn trục rõ ràng
         xaxis=dict(
-            title='Giao dịch', # FORCE X-AXIS TITLE
+            title='Trạng thái Dòng tiền', 
             showline=True, 
             linewidth=1, 
             linecolor='black'
         ),
         yaxis=dict(
-            title='Giá trị (USD)', # FORCE Y-AXIS TITLE
+            title='Giá trị (USD)', 
             showline=True, 
             linewidth=1, 
             linecolor='black'
         )
     )
+
     return fig
 
 # --- 4. Biểu đồ Phân tích Độ nhạy Kỳ hạn (Matplotlib - FIX màu và nền) ---
@@ -237,5 +264,6 @@ if advance_amount and advance_rate:
             discount_rate_annual
         )
         st.pyplot(fig_tenor)
+
 
 
