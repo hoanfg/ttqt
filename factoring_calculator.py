@@ -75,75 +75,52 @@ def create_main_visualization(results):
     plt.tight_layout()
     return fig
 
-# --- 3. Biểu đồ Thay thế Waterfall (Sử dụng Stacked Bar với Plotly) ---
+# --- 3. Biểu đồ Thay thế Waterfall (Sử dụng Grouped Bar Chart với Plotly) ---
 def create_waterfall_chart(results):
     advance_amount = results["Khoản tiền Ứng trước (Advance Amount)"]
-    service_fee = results["Hoa hồng phí (Service Fee)"]
-    discount_interest = results["Lãi suất chiết khấu (Discount Interest)"]
+    total_costs = results["Tổng chi phí (Total Cost)"]
     net_cash = results["Số tiền Thực nhận (Net Cash Received)"]
 
-    # Dữ liệu cho biểu đồ xếp chồng (Stacked Bar Chart)
-    # Chúng ta sẽ hiển thị 3 cột: Khoản ứng trước, Chi phí, và Net Cash
-    
-    data = {
-        'Hạng mục': ['Khoản Ứng trước (Start)', 'Chi phí (Total Cost)', 'Net Cash (End)'],
-        'Giá trị': [advance_amount, results["Tổng chi phí (Total Cost)"], net_cash]
-    }
-    df = pd.DataFrame(data)
+    # Dữ liệu cho biểu đồ cột so sánh
+    data = pd.DataFrame({
+        'Chỉ số': ['Khoản Ứng trước', 'Tổng Chi phí', 'Số tiền Thực nhận'],
+        'Giá trị': [advance_amount, total_costs, net_cash],
+        'Loại': ['Khởi điểm', 'Chi phí', 'Kết quả']
+    })
 
-    # Để trực quan hóa 3 cột chính, ta dùng biểu đồ cột đơn (Single Bar)
-    # Để thể hiện mối quan hệ trừ bớt (tương tự Waterfall) ta dùng biểu đồ xếp chồng TƯƠNG ĐỐI
-    
-    # Chuẩn bị dữ liệu cho biểu đồ hiển thị chi phí giảm trừ từ Khoản ứng trước (Net Cash)
-    
-    categories = ['Phần chi phí', 'Phần thực nhận']
-    
-    # Cấu trúc: 
-    # Cột 1: Chi phí + Net Cash = Advance (Cột gốc)
-    # Cột 2: Net Cash (Cột kết quả)
-    
-    plot_data = pd.DataFrame({
-        'Thành phần': ['Net Cash', 'Chi phí'],
-        'Khởi điểm ứng trước': [net_cash, results["Tổng chi phí (Total Cost)"]],
-        'Kết quả': [net_cash, 0] # Chi phí là 0 ở cột Net Cash
-    }).set_index('Thành phần')
+    # Tạo biểu đồ cột đơn giản (Grouped Bar)
+    fig = px.bar(
+        data, 
+        x='Chỉ số', 
+        y='Giá trị', 
+        color='Loại', # Dùng cột Loại để phân biệt màu sắc
+        text='Giá trị',
+        color_discrete_map={
+            'Khởi điểm': '#3498DB', # Xanh dương cho Khoản ứng trước
+            'Chi phí': '#E74C3C',    # Đỏ cho Tổng chi phí
+            'Kết quả': '#2ECC71'     # Xanh lá cho Net Cash
+        },
+        title="Dòng tiền và Chi phí Giảm trừ"
+    )
 
+    # Thêm định dạng chi tiết cho Plotly
+    fig.update_traces(
+        texttemplate='%{y:,.0f} USD', 
+        textposition='outside'
+    )
 
-    fig = go.Figure(data=[
-        # Lớp dưới: Net Cash (Màu xanh lá cây)
-        go.Bar(
-            name='Số tiền Thực nhận',
-            x=['Khởi điểm ứng trước', 'Kết quả'],
-            y=[net_cash, net_cash],
-            marker_color='#4CAF50',
-            text=[f'{net_cash:,.0f}', f'{net_cash:,.0f}'],
-            textposition='inside',
-            hoverinfo='name+y'
-        ),
-        # Lớp trên: Chi phí (Màu đỏ) - Chỉ xuất hiện ở cột Khởi điểm
-        go.Bar(
-            name='Tổng Chi phí (Giảm trừ)',
-            x=['Khởi điểm ứng trước', 'Kết quả'],
-            y=[results["Tổng chi phí (Total Cost)"], 0],
-            marker_color='#F44336',
-            text=[f'-{results["Tổng chi phí (Total Cost)"]:,.0f}', ''],
-            textposition='inside',
-            hoverinfo='name+y'
-        )
-    ])
-    
-    # Cập nhật layout để làm rõ mối quan hệ
     fig.update_layout(
-        barmode='stack',
-        title="Dòng tiền: Khoản Ứng trước và Giảm trừ Chi phí",
+        title="Dòng tiền và Chi phí Giảm trừ",
         height=450,
         width=800,
-        showlegend = True,
+        showlegend = False,
         plot_bgcolor='white',      
         paper_bgcolor='white',     
         font=dict(color="black"),
+        
+        # Thêm frame và tiêu đề trục
         xaxis=dict(
-            title='Trạng thái Dòng tiền', 
+            title='Chỉ số Giao dịch', 
             showline=True, 
             linewidth=1, 
             linecolor='black'
@@ -155,7 +132,6 @@ def create_waterfall_chart(results):
             linecolor='black'
         )
     )
-
     return fig
 
 # --- 4. Biểu đồ Phân tích Độ nhạy Kỳ hạn (Matplotlib - FIX màu và nền) ---
@@ -264,6 +240,7 @@ if advance_amount and advance_rate:
             discount_rate_annual
         )
         st.pyplot(fig_tenor)
+
 
 
 
