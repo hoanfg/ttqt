@@ -54,7 +54,7 @@ def create_visualization(results):
 
     ax.set_title(f'Cơ cấu Trị giá Nợ phải thu: {total_ar:,.2f} USD', fontsize=14)
     ax.set_ylabel('Giá trị (USD)', fontsize=12)
-    ax.xlabel('')
+    ax.set_xlabel('')
     ax.grid(axis='y', linestyle='--', alpha=0.7)
     
     return fig
@@ -109,4 +109,5 @@ if advance_amount and advance_rate:
         st.subheader("Bảng Chi Tiết Giao Dịch")
         df_display = pd.DataFrame(results.items(), columns=['Chỉ tiêu', 'Giá trị (USD)'])
         df_display['Giá trị (USD)'] = df_display['Giá trị (USD)'].apply(lambda x: f"{x:,.2f}")
+
         st.table(df_display)
