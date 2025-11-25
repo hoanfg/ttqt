@@ -2,14 +2,12 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-import waterfall_chart as wfc  # Import thư viện Waterfall Charts
+import plotly.express as px
+import plotly.graph_objects as go
 
 # --- 1. Hàm tính toán logic ---
 def calculate_factoring_costs(advance_amount, advance_rate, discount_rate_annual, service_fee_rate, tenor_months):
-    """Tính toán chi phí và số tiền thực nhận."""
-    
     if advance_rate <= 0 or advance_rate > 1:
-        st.error("Tỷ lệ ứng trước (Advance Rate) phải nằm trong khoảng 0 đến 1.")
         return None
         
     total_ar = advance_amount / advance_rate
@@ -33,7 +31,7 @@ def calculate_factoring_costs(advance_amount, advance_rate, discount_rate_annual
     
     return results
 
-# --- 2. Hàm trực quan hóa chính (Cơ cấu AR - Vẫn dùng biểu đồ thanh ngang) ---
+# --- 2. Hàm trực quan hóa chính (Cơ cấu AR - Matplotlib) ---
 def create_main_visualization(results):
     net_cash = results["Số tiền Thực nhận (Net Cash Received)"]
     total_costs = results["Tổng chi phí (Total Cost)"]
@@ -58,57 +56,51 @@ def create_main_visualization(results):
                 f'{width:,.2f} USD', va='center', fontsize=10)
 
     plt.xlim(0, total_ar * 1.1)
+    plt.tight_layout()
     return fig
 
-# --- 3. Biểu đồ Waterfall ---
+# --- 3. Biểu đồ Waterfall (MỚI: Dùng Plotly Express) ---
 def create_waterfall_chart(results):
-    """Trực quan hóa dòng tiền: Advance -> Chi phí -> Net Cash."""
-    
     advance_amount = results["Khoản tiền Ứng trước (Advance Amount)"]
     service_fee = results["Hoa hồng phí (Service Fee)"]
     discount_interest = results["Lãi suất chiết khấu (Discount Interest)"]
     net_cash = results["Số tiền Thực nhận (Net Cash Received)"]
-    
-    # Chuẩn bị dữ liệu cho biểu đồ Waterfall
-    data = [
-        advance_amount,
-        -service_fee,        # Chi phí (giảm)
-        -discount_interest,  # Chi phí (giảm)
-        net_cash - advance_amount + service_fee + discount_interest # Cần tính Net Cash
-    ]
-    index = [
-        'Khoản Ứng trước (Start)',
-        '(-) Hoa hồng phí',
-        '(-) Lãi suất',
-        'Số tiền Thực nhận (End)'
-    ]
-    names = ['Khoản Ứng trước', 'Hoa hồng phí', 'Lãi suất', 'Net Cash']
-    
-    # Tạo giá trị thay đổi (+/-)
-    changes = [advance_amount, -service_fee, -discount_interest, net_cash]
-    
-    # Tạo biểu đồ Waterfall
-    fig, ax = wfc.plot(names, changes, 
-                       net_label='Net Cash', 
-                       figsize=(8, 4), 
-                       rotation_label=0)
-    
-    # Định dạng lại tiêu đề
-    ax.set_title("Dòng tiền và Chi phí Giảm trừ", fontsize=14)
-    ax.set_ylabel('Giá trị (USD)', fontsize=12)
+
+    # Dữ liệu cho Plotly Waterfall
+    data = {
+        "Giao Dịch": ["Khởi Điểm (Ứng trước)", "Chi phí Dịch vụ", "Chi phí Lãi suất", "Net Cash"],
+        "Giá Trị": [advance_amount, -service_fee, -discount_interest, net_cash],
+        "Loại": ["intermediate", "decrease", "decrease", "total"]
+    }
+    df = pd.DataFrame(data)
+
+    fig = go.Figure(go.Waterfall(
+        name = "Dòng tiền", orientation = "v",
+        measure = df["Loại"],
+        x = df["Giao Dịch"],
+        textposition = "outside",
+        text = [f'{v:,.0f}' for v in df["Giá Trị"]],
+        y = df["Giá Trị"],
+        connector = {"line":{"color":"rgb(63, 63, 63)"}},
+    ))
+
+    fig.update_layout(
+        title = "Dòng tiền và Chi phí Giảm trừ",
+        height=450,
+        width=800,
+        showlegend = False
+    )
     return fig
 
-# --- 4. Biểu đồ Phân tích Độ nhạy Kỳ hạn (MỚI) ---
+# --- 4. Biểu đồ Phân tích Độ nhạy Kỳ hạn (Matplotlib) ---
 def create_tenor_sensitivity_chart(advance_amount, advance_rate, service_fee_rate, discount_rate_annual):
-    tenor_scenarios = [3, 6, 9, 12] # Thử nghiệm các kỳ hạn 3, 6, 9, 12 tháng
+    tenor_scenarios = [3, 6, 9, 12]
     net_cash_data = []
     
     for tenor in tenor_scenarios:
-        # Tính Net Cash Received cho từng kỳ hạn
         total_ar = advance_amount / advance_rate
-        service_fee = total_ar * service_fee_rate # Phí này không đổi
+        service_fee = total_ar * service_fee_rate
         
-        # Lãi suất thay đổi theo kỳ hạn
         discount_interest = advance_amount * discount_rate_annual * (tenor / 12.0)
         net_cash = advance_amount - (service_fee + discount_interest)
         
@@ -119,7 +111,7 @@ def create_tenor_sensitivity_chart(advance_amount, advance_rate, service_fee_rat
         'Net Cash': net_cash_data
     })
 
-    fig, ax = plt.subplots(figsize=(8, 4))
+    fig, ax = plt.subplots(figsize=(6, 3.5))
     bars = ax.bar(df['Kỳ hạn (Tháng)'], df['Net Cash'], color='#00BCD4')
     
     ax.set_title('Độ nhạy: Net Cash theo Kỳ hạn', fontsize=14)
@@ -132,6 +124,7 @@ def create_tenor_sensitivity_chart(advance_amount, advance_rate, service_fee_rat
                 f'{yval:,.0f}', ha='center', fontsize=10)
 
     plt.grid(axis='y', linestyle='--', alpha=0.7)
+    plt.tight_layout()
     return fig
 
 
@@ -140,7 +133,6 @@ st.set_page_config(page_title="Mô Hình Chi Phí Bao Thanh Toán", layout="wide
 st.title("💰 Công Cụ Mô Phỏng Chi Phí Bao Thanh Toán (Factoring)")
 st.markdown("---")
 
-# Sidebar cho Input (Giữ nguyên)
 st.sidebar.header("Tham Số Đầu Vào")
 
 advance_amount = st.sidebar.number_input("Khoản tiền Ứng trước (USD)", value=120000.0, min_value=1.0, step=1000.0, format="%.2f")
@@ -180,10 +172,10 @@ if advance_amount and advance_rate:
         
         st.markdown("---")
 
-        # KHU VỰC BIỂU ĐỒ 2: Dòng tiền (Waterfall)
-        st.subheader("2. Dòng tiền và Chi phí Giảm trừ (Biểu đồ Waterfall)")
+        # KHU VỰC BIỂU ĐỒ 2: Dòng tiền (Waterfall - MỚI)
+        st.subheader("2. Dòng tiền và Chi phí Giảm trừ (Biểu đồ Waterfall - Tương tác)")
         fig_waterfall = create_waterfall_chart(results)
-        st.pyplot(fig_waterfall)
+        st.plotly_chart(fig_waterfall, use_container_width=True)
         
         st.markdown("---")
 
@@ -196,4 +188,3 @@ if advance_amount and advance_rate:
             discount_rate_annual
         )
         st.pyplot(fig_tenor)
-
