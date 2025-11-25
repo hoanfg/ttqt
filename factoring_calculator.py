@@ -43,43 +43,45 @@ def create_main_visualization(results):
         'Giá trị (USD)': [net_cash, total_costs, reserve]
     })
     
-    fig, ax = plt.subplots(figsize=(8, 4))
+    # Thiết lập màu nền trắng cho Matplotlib
+    plt.style.use('default') 
+    fig, ax = plt.subplots(figsize=(9, 4.5), facecolor='white') # Tăng kích thước nhẹ, nền trắng
+    
     bars = ax.barh(data['Thành phần'], data['Giá trị (USD)'], color=['#4CAF50', '#F44336', '#FFC107'])
     
-    ax.set_title(f'Cơ cấu Trị giá Nợ phải thu: {total_ar:,.2f} USD', fontsize=14)
-    ax.set_xlabel('Giá trị (USD)', fontsize=12)
+    ax.set_title(f'Cơ cấu Trị giá Nợ phải thu: {total_ar:,.2f} USD', fontsize=14, color='black') # Chữ đen
+    ax.set_xlabel('Giá trị (USD)', fontsize=12, color='black') # Chữ đen
     ax.set_ylabel('')
+    ax.tick_params(axis='x', colors='black') # Chữ trục x đen
+    ax.tick_params(axis='y', colors='black') # Chữ trục y đen
+    ax.set_facecolor('white') # Nền biểu đồ trắng
+    
+    # Border
+    for spine in ax.spines.values():
+        spine.set_edgecolor('black') # Border đen
     
     for bar in bars:
         width = bar.get_width()
         ax.text(width + (total_ar * 0.005), bar.get_y() + bar.get_height()/2, 
-                f'{width:,.2f} USD', va='center', fontsize=10)
+                f'{width:,.2f} USD', va='center', fontsize=10, color='black') # Chữ giá trị đen
 
     plt.xlim(0, total_ar * 1.1)
-    plt.tight_layout()
+    plt.tight_layout() # Điều chỉnh để chữ không bị dính
     return fig
 
-# --- 3. Biểu đồ Waterfall (ĐÃ FIX LOGIC) ---
+# --- 3. Biểu đồ Waterfall (Dùng Plotly Express) ---
 def create_waterfall_chart(results):
     advance_amount = results["Khoản tiền Ứng trước (Advance Amount)"]
     service_fee = results["Hoa hồng phí (Service Fee)"]
     discount_interest = results["Lãi suất chiết khấu (Discount Interest)"]
 
-    # --- Chuẩn bị dữ liệu cho Plotly Waterfall ---
-    
-    # 1. Nhãn (Categories/X-axis)
     categories = ["Khoản Ứng trước", "(-) Phí Dịch vụ", "(-) Chi phí Lãi suất", "Net Cash (Kết quả)"]
-    
-    # 2. Giá trị (Y-axis): Cột đầu tiên là tổng (tổng cộng dồn), các cột sau là thay đổi
-    # Logic: [Advance Amount] -> [-Fee] -> [-Interest] -> [Net Cash]
     data_values = [
         advance_amount, 
         -service_fee, 
         -discount_interest, 
         0 # Plotly sẽ tự động tính toán giá trị cột "total"
     ]
-    
-    # 3. Loại hình (Measure): Xác định cách Plotly xử lý cột
     measures = ["intermediate", "decrease", "decrease", "total"]
 
     df = pd.DataFrame({'Giao Dịch': categories, 'Giá Trị': data_values, 'Loại': measures})
@@ -89,17 +91,22 @@ def create_waterfall_chart(results):
         measure = df["Loại"],
         x = df["Giao Dịch"],
         textposition = "outside",
-        # Sử dụng thuộc tính text để định dạng giá trị hiển thị trên cột
         text = [f'{v:,.0f}' if m != 'total' else f'{results["Số tiền Thực nhận (Net Cash Received)"]:,.0f}' for v, m in zip(df["Giá Trị"], df["Loại"])],
         y = df["Giá Trị"],
         connector = {"line":{"color":"rgb(63, 63, 63)"}},
+        increasing = {"marker":{"color":"#4CAF50"}}, # Màu cột tăng (Ứng trước)
+        decreasing = {"marker":{"color":"#F44336"}}, # Màu cột giảm (Chi phí)
+        totals = {"marker":{"color":"#2196F3"}},    # Màu cột tổng (Net Cash)
     ))
 
     fig.update_layout(
         title = "Dòng tiền và Chi phí Giảm trừ",
         height=450,
         width=800,
-        showlegend = False
+        showlegend = False,
+        plot_bgcolor='white',      # Nền biểu đồ trắng
+        paper_bgcolor='white',     # Nền giấy (khu vực xung quanh biểu đồ) trắng
+        font=dict(color="black")   # Chữ màu đen
     )
     return fig
 
@@ -122,20 +129,30 @@ def create_tenor_sensitivity_chart(advance_amount, advance_rate, service_fee_rat
         'Net Cash': net_cash_data
     })
 
-    fig, ax = plt.subplots(figsize=(6, 3.5))
+    # Thiết lập màu nền trắng cho Matplotlib
+    plt.style.use('default')
+    fig, ax = plt.subplots(figsize=(7, 3.8), facecolor='white') # Tăng kích thước nhẹ, nền trắng
+    
     bars = ax.bar(df['Kỳ hạn (Tháng)'], df['Net Cash'], color='#00BCD4')
     
-    ax.set_title('Độ nhạy: Net Cash theo Kỳ hạn', fontsize=14)
-    ax.set_ylabel('Net Cash (USD)', fontsize=12)
-    ax.set_xlabel('Kỳ hạn bao thanh toán', fontsize=12)
-    
+    ax.set_title('Độ nhạy: Net Cash theo Kỳ hạn', fontsize=14, color='black') # Chữ đen
+    ax.set_ylabel('Net Cash (USD)', fontsize=12, color='black') # Chữ đen
+    ax.set_xlabel('Kỳ hạn bao thanh toán', fontsize=12, color='black') # Chữ đen
+    ax.tick_params(axis='x', colors='black') # Chữ trục x đen
+    ax.tick_params(axis='y', colors='black') # Chữ trục y đen
+    ax.set_facecolor('white') # Nền biểu đồ trắng
+
+    # Border
+    for spine in ax.spines.values():
+        spine.set_edgecolor('black') # Border đen
+
     for bar in bars:
         yval = bar.get_height()
-        ax.text(bar.get_x() + bar.get_width()/2.0, yval + 1000, 
-                f'{yval:,.0f}', ha='center', fontsize=10)
+        ax.text(bar.get_x() + bar.get_width()/2.0, yval + (max(net_cash_data) * 0.02), # Tăng khoảng cách chữ giá trị
+                f'{yval:,.0f}', ha='center', fontsize=10, color='black') # Chữ giá trị đen
 
-    plt.grid(axis='y', linestyle='--', alpha=0.7)
-    plt.tight_layout()
+    plt.grid(axis='y', linestyle='--', alpha=0.7, color='lightgray') # Lưới màu xám nhạt
+    plt.tight_layout() # Điều chỉnh để chữ không bị dính
     return fig
 
 
