@@ -5,7 +5,7 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 
-# --- 1. Hàm tính toán logic ---
+# --- 1. Hàm tính toán logic (Giữ nguyên) ---
 def calculate_factoring_costs(advance_amount, advance_rate, discount_rate_annual, service_fee_rate, tenor_months):
     if advance_rate <= 0 or advance_rate > 1:
         return None
@@ -31,45 +31,51 @@ def calculate_factoring_costs(advance_amount, advance_rate, discount_rate_annual
     
     return results
 
-# --- 2. Hàm trực quan hóa chính (Cơ cấu AR - Matplotlib) ---
+# --- 2. Hàm trực quan hóa chính (Cơ cấu AR - CHUYỂN SANG BIỂU ĐỒ CỘT DỌC) ---
 def create_main_visualization(results):
     net_cash = results["Số tiền Thực nhận (Net Cash Received)"]
     total_costs = results["Tổng chi phí (Total Cost)"]
     reserve = results["Khoản Dự trữ (Reserve)"]
     total_ar = results["Trị giá Nợ phải thu (Total AR)"]
     
+    # Sắp xếp theo giá trị để hiển thị cột rõ ràng hơn
     data = pd.DataFrame({
         'Thành phần': ['Số tiền Thực nhận', 'Tổng Chi phí', 'Khoản Dự trữ'],
         'Giá trị (USD)': [net_cash, total_costs, reserve]
-    })
+    }).sort_values(by='Giá trị (USD)', ascending=False) # Sắp xếp từ lớn đến bé
+    
+    # Màu sắc cố định (Xanh lá, Đỏ, Vàng)
+    colors = ['#4CAF50', '#F44336', '#FFC107']
     
     # Thiết lập màu nền trắng cho Matplotlib
     plt.style.use('default') 
-    fig, ax = plt.subplots(figsize=(9, 4.5), facecolor='white') # Tăng kích thước nhẹ, nền trắng
+    fig, ax = plt.subplots(figsize=(9, 4.5), facecolor='white') 
     
-    bars = ax.barh(data['Thành phần'], data['Giá trị (USD)'], color=['#4CAF50', '#F44336', '#FFC107'])
+    # Dùng biểu đồ cột dọc (plt.bar)
+    bars = ax.bar(data['Thành phần'], data['Giá trị (USD)'], color=colors)
     
-    ax.set_title(f'Cơ cấu Trị giá Nợ phải thu: {total_ar:,.2f} USD', fontsize=14, color='black') # Chữ đen
-    ax.set_xlabel('Giá trị (USD)', fontsize=12, color='black') # Chữ đen
-    ax.set_ylabel('')
-    ax.tick_params(axis='x', colors='black') # Chữ trục x đen
-    ax.tick_params(axis='y', colors='black') # Chữ trục y đen
-    ax.set_facecolor('white') # Nền biểu đồ trắng
+    ax.set_title(f'Cơ cấu Trị giá Nợ phải thu: {total_ar:,.2f} USD', fontsize=14, color='black')
+    ax.set_ylabel('Giá trị (USD)', fontsize=12, color='black') 
+    ax.set_xlabel('Thành phần', fontsize=12, color='black') # Thêm nhãn cho trục x
+    ax.tick_params(axis='x', colors='black', rotation=15) # Xoay chữ trục x 15 độ
+    ax.tick_params(axis='y', colors='black')
+    ax.set_facecolor('white')
     
     # Border
     for spine in ax.spines.values():
-        spine.set_edgecolor('black') # Border đen
-    
-    for bar in bars:
-        width = bar.get_width()
-        ax.text(width + (total_ar * 0.005), bar.get_y() + bar.get_height()/2, 
-                f'{width:,.2f} USD', va='center', fontsize=10, color='black') # Chữ giá trị đen
+        spine.set_edgecolor('black')
 
-    plt.xlim(0, total_ar * 1.1)
-    plt.tight_layout() # Điều chỉnh để chữ không bị dính
+    # Thêm nhãn giá trị trên đỉnh cột
+    for bar in bars:
+        height = bar.get_height()
+        ax.text(bar.get_x() + bar.get_width()/2., height + (total_ar * 0.005), 
+                f'{height:,.2f} USD', ha='center', fontsize=10, color='black')
+
+    plt.ylim(0, max(data['Giá trị (USD)']) * 1.15) # Điều chỉnh giới hạn trục Y
+    plt.tight_layout()
     return fig
 
-# --- 3. Biểu đồ Waterfall (Dùng Plotly Express) ---
+# --- 3. Biểu đồ Waterfall (Giữ nguyên Plotly) ---
 def create_waterfall_chart(results):
     advance_amount = results["Khoản tiền Ứng trước (Advance Amount)"]
     service_fee = results["Hoa hồng phí (Service Fee)"]
@@ -80,7 +86,7 @@ def create_waterfall_chart(results):
         advance_amount, 
         -service_fee, 
         -discount_interest, 
-        0 # Plotly sẽ tự động tính toán giá trị cột "total"
+        0 
     ]
     measures = ["intermediate", "decrease", "decrease", "total"]
 
@@ -94,9 +100,9 @@ def create_waterfall_chart(results):
         text = [f'{v:,.0f}' if m != 'total' else f'{results["Số tiền Thực nhận (Net Cash Received)"]:,.0f}' for v, m in zip(df["Giá Trị"], df["Loại"])],
         y = df["Giá Trị"],
         connector = {"line":{"color":"rgb(63, 63, 63)"}},
-        increasing = {"marker":{"color":"#4CAF50"}}, # Màu cột tăng (Ứng trước)
-        decreasing = {"marker":{"color":"#F44336"}}, # Màu cột giảm (Chi phí)
-        totals = {"marker":{"color":"#2196F3"}},    # Màu cột tổng (Net Cash)
+        increasing = {"marker":{"color":"#4CAF50"}},
+        decreasing = {"marker":{"color":"#F44336"}},
+        totals = {"marker":{"color":"#2196F3"}},    
     ))
 
     fig.update_layout(
@@ -104,13 +110,13 @@ def create_waterfall_chart(results):
         height=450,
         width=800,
         showlegend = False,
-        plot_bgcolor='white',      # Nền biểu đồ trắng
-        paper_bgcolor='white',     # Nền giấy (khu vực xung quanh biểu đồ) trắng
-        font=dict(color="black")   # Chữ màu đen
+        plot_bgcolor='white',
+        paper_bgcolor='white',
+        font=dict(color="black")
     )
     return fig
 
-# --- 4. Biểu đồ Phân tích Độ nhạy Kỳ hạn (Matplotlib) ---
+# --- 4. Biểu đồ Phân tích Độ nhạy Kỳ hạn (Matplotlib - FIX màu và nền) ---
 def create_tenor_sensitivity_chart(advance_amount, advance_rate, service_fee_rate, discount_rate_annual):
     tenor_scenarios = [3, 6, 9, 12]
     net_cash_data = []
@@ -131,32 +137,33 @@ def create_tenor_sensitivity_chart(advance_amount, advance_rate, service_fee_rat
 
     # Thiết lập màu nền trắng cho Matplotlib
     plt.style.use('default')
-    fig, ax = plt.subplots(figsize=(7, 3.8), facecolor='white') # Tăng kích thước nhẹ, nền trắng
+    fig, ax = plt.subplots(figsize=(7, 3.8), facecolor='white') 
     
-    bars = ax.bar(df['Kỳ hạn (Tháng)'], df['Net Cash'], color='#00BCD4')
+    # Dùng màu xanh dương đậm (đồng nhất với màu cột Total Cash trong Waterfall)
+    bars = ax.bar(df['Kỳ hạn (Tháng)'], df['Net Cash'], color='#2196F3') 
     
-    ax.set_title('Độ nhạy: Net Cash theo Kỳ hạn', fontsize=14, color='black') # Chữ đen
-    ax.set_ylabel('Net Cash (USD)', fontsize=12, color='black') # Chữ đen
-    ax.set_xlabel('Kỳ hạn bao thanh toán', fontsize=12, color='black') # Chữ đen
-    ax.tick_params(axis='x', colors='black') # Chữ trục x đen
-    ax.tick_params(axis='y', colors='black') # Chữ trục y đen
-    ax.set_facecolor('white') # Nền biểu đồ trắng
+    ax.set_title('Độ nhạy: Net Cash theo Kỳ hạn', fontsize=14, color='black')
+    ax.set_ylabel('Net Cash (USD)', fontsize=12, color='black')
+    ax.set_xlabel('Kỳ hạn bao thanh toán', fontsize=12, color='black')
+    ax.tick_params(axis='x', colors='black')
+    ax.tick_params(axis='y', colors='black')
+    ax.set_facecolor('white')
 
     # Border
     for spine in ax.spines.values():
-        spine.set_edgecolor('black') # Border đen
+        spine.set_edgecolor('black')
 
     for bar in bars:
         yval = bar.get_height()
-        ax.text(bar.get_x() + bar.get_width()/2.0, yval + (max(net_cash_data) * 0.02), # Tăng khoảng cách chữ giá trị
-                f'{yval:,.0f}', ha='center', fontsize=10, color='black') # Chữ giá trị đen
+        ax.text(bar.get_x() + bar.get_width()/2.0, yval + (max(net_cash_data) * 0.02),
+                f'{yval:,.0f}', ha='center', fontsize=10, color='black')
 
-    plt.grid(axis='y', linestyle='--', alpha=0.7, color='lightgray') # Lưới màu xám nhạt
-    plt.tight_layout() # Điều chỉnh để chữ không bị dính
+    plt.grid(axis='y', linestyle='--', alpha=0.7, color='lightgray')
+    plt.tight_layout()
     return fig
 
 
-# --- 5. Xây dựng Giao diện Streamlit ---
+# --- 5. Xây dựng Giao diện Streamlit (Giữ nguyên) ---
 st.set_page_config(page_title="Mô Hình Chi Phí Bao Thanh Toán", layout="wide")
 st.title("💰 Công Cụ Mô Phỏng Chi Phí Bao Thanh Toán (Factoring)")
 st.markdown("---")
@@ -173,7 +180,7 @@ advance_rate = advance_rate_percent / 100.0
 service_fee_rate = service_fee_rate_percent / 100.0
 discount_rate_annual = discount_rate_percent / 100.0
 
-# --- 6. Hiển thị Kết quả và Biểu đồ ---
+# --- 6. Hiển thị Kết quả và Biểu đồ (Giữ nguyên) ---
 if advance_amount and advance_rate:
     results = calculate_factoring_costs(
         advance_amount,
@@ -194,7 +201,7 @@ if advance_amount and advance_rate:
         st.markdown("---")
 
         # KHU VỰC BIỂU ĐỒ 1: Cơ cấu AR
-        st.subheader("1. Cơ Cấu Khoản Phải Thu (Biểu đồ Thanh ngang)")
+        st.subheader("1. Cơ Cấu Khoản Phải Thu (Biểu đồ Cột dọc)")
         fig_main = create_main_visualization(results)
         st.pyplot(fig_main)
         
