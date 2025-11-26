@@ -90,44 +90,56 @@ def create_main_visualization(results):
     plt.tight_layout()
     return fig
 
-# --- 3. Biểu đồ Thay thế Waterfall (So sánh Dòng tiền bằng Grouped Bar Chart Matplotlib) ---
-def create_waterfall_chart(results):
-    advance_amount = results["Khoản tiền Ứng trước (Advance Amount)"]
+# --- 3. Biểu đồ Thay thế: Tỷ trọng Chi phí (Matplotlib Vertical Bar Chart) ---
+def create_cost_composition_chart(results):
+    service_fee = results["Hoa hồng phí (Service Fee)"]
+    discount_interest = results["Lãi suất chiết khấu (Interest Cost)"]
     total_costs = results["Tổng chi phí (Total Cost)"]
-    net_cash = results["Số tiền Thực nhận (Net Cash Received)"]
 
+    # Chỉ hiển thị nếu có chi phí
+    if total_costs <= 0:
+        fig, ax = plt.subplots(figsize=(7, 3.8))
+        ax.text(0.5, 0.5, "Không có chi phí để phân tích.", ha='center', va='center', fontsize=12)
+        ax.axis('off')
+        return fig
+    
     # Dữ liệu cho biểu đồ cột so sánh
-    categories = ['Khoản Ứng trước', 'Số tiền Thực nhận', 'Tổng Chi phí']
-    values = [advance_amount, net_cash, total_costs]
+    data = pd.DataFrame({
+        'Thành phần': ['Chi phí Lãi suất', 'Hoa hồng phí'],
+        'Giá trị': [discount_interest, service_fee]
+    }).sort_values(by='Giá trị', ascending=False)
     
-    colors = ['#3498DB', '#2ECC71', '#E74C3C'] # Xanh dương, Xanh lá, Đỏ
+    # Màu sắc cố định: Đỏ cho Lãi suất (thường là chi phí lớn hơn), Vàng cho Phí
+    colors = ['#F44336', '#FFC107']
     
+    # Thiết lập nền trắng cho Matplotlib và kích thước
     plt.style.use('default')
     fig, ax = plt.subplots(figsize=(7, 3.8), facecolor='white') 
+
+    bars = ax.bar(data['Thành phần'], data['Giá trị'], color=colors)
     
-    bars = ax.bar(categories, values, color=colors) 
-    
-    ax.set_title('2. So sánh Dòng tiền và Chi phí Giảm trừ', fontsize=14, color='black')
-    ax.set_ylabel('Giá trị (USD)', fontsize=12, color='black') 
-    ax.set_xlabel('Chỉ số Dòng tiền', fontsize=12, color='black')
-    ax.tick_params(axis='x', colors='black', rotation=15)
+    # Styling và Labels
+    ax.set_title(f'2. Cơ cấu Tổng Chi phí: {total_costs:,.2f} USD', fontsize=14, color='black')
+    ax.set_ylabel('Giá trị (USD)', fontsize=12, color='black')
+    ax.set_xlabel('Thành phần Chi phí', fontsize=12, color='black')
+    ax.tick_params(axis='x', colors='black')
     ax.tick_params(axis='y', colors='black')
     ax.set_facecolor('white')
 
+    # Grid và Border
     ax.grid(axis='y', linestyle='--', alpha=0.7, color='lightgray')
     for spine in ax.spines.values():
         spine.set_edgecolor('black')
 
-    # Thêm nhãn giá trị trên đỉnh cột
+    # Thêm nhãn giá trị
     for bar in bars:
         height = bar.get_height()
-        ax.text(bar.get_x() + bar.get_width()/2.0, height + (max(values) * 0.02), 
+        ax.text(bar.get_x() + bar.get_width()/2.0, height + (total_costs * 0.05), 
                 f'{height:,.0f} USD', ha='center', fontsize=10, color='black') 
 
-    plt.ylim(0, max(values) * 1.15)
+    plt.ylim(0, max(data['Giá trị']) * 1.25)
     plt.tight_layout()
     return fig
-
 
 # --- 4. Biểu đồ Phân tích Độ nhạy Kỳ hạn (Matplotlib) ---
 def create_tenor_sensitivity_chart(advance_amount, advance_rate, service_fee_rate, discount_rate_annual):
@@ -244,3 +256,4 @@ if advance_amount and advance_rate:
             discount_rate_annual
         )
         st.pyplot(fig_tenor)
+
