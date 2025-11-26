@@ -73,7 +73,7 @@ def create_main_visualization(results):
     ax.set_title(f'1. Cơ cấu Trị giá Nợ phải thu: {total_ar:,.2f} USD', fontsize=14, color='black')
     ax.set_ylabel('Giá trị (USD)', fontsize=12, color='black') 
     ax.set_xlabel('')
-    ax.tick_params(axis='x', colors='black', rotation=15)
+    ax.tick_params(axis='x', colors='black', rotation=0)
     ax.tick_params(axis='y', colors='black')
     ax.set_facecolor('white')
     
@@ -256,6 +256,7 @@ if advance_amount and advance_rate:
             discount_rate_annual
         )
         st.pyplot(fig_tenor)
+
 
 
 
