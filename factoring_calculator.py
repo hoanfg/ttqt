@@ -82,12 +82,12 @@ def create_main_visualization(results):
     colors = ['#4CAF50', '#FFC107', '#F44336'] 
     
     plt.style.use('default') 
-    fig, ax = plt.subplots(figsize=(8.5, 4), facecolor='white') 
+    fig, ax = plt.subplots(figsize=(8, 4.5), facecolor='white') 
     
     bars = ax.bar(data['Thành phần'], data['Giá trị (USD)'], color=colors)
     
-    ax.set_title(f'1. Cơ cấu Trị giá Nợ phải thu: {total_ar:,.2f} USD', fontsize=14, color='black')
-    ax.set_ylabel('Giá trị (USD)', fontsize=12, color='black') 
+    ax.set_title(f'1. Cơ cấu Trị giá Nợ phải thu: {total_ar:,.2f} USD', fontsize=11, color='black')
+    ax.set_ylabel('Giá trị (USD)', fontsize=11, color='black') 
     ax.set_xlabel('')
     ax.tick_params(axis='x', colors='black', rotation=0) # Chữ nằm ngang
     ax.tick_params(axis='y', colors='black')
@@ -113,7 +113,7 @@ def create_cost_composition_chart(results):
     total_costs = results["Tổng chi phí (Total Cost)"]
 
     if total_costs <= 0:
-        fig, ax = plt.subplots(figsize=(6.2, 3))
+        fig, ax = plt.subplots(figsize=(6, 3.8))
         ax.text(0.5, 0.5, "Không có chi phí để phân tích.", ha='center', va='center', fontsize=12)
         ax.axis('off')
         return fig
@@ -129,14 +129,14 @@ def create_cost_composition_chart(results):
     
     # Thiết lập nền trắng cho Matplotlib và kích thước
     plt.style.use('default')
-    fig, ax = plt.subplots(figsize=(6.2, 3), facecolor='white') 
+    fig, ax = plt.subplots(figsize=(6, 3.8), facecolor='white') 
 
     bars = ax.bar(data['Thành phần'], data['Giá trị'], color=colors)
     
     # Styling và Labels
-    ax.set_title(f'2. Cơ cấu Tổng Chi phí: {total_costs:,.2f} USD', fontsize=14, color='black')
-    ax.set_ylabel('Giá trị (USD)', fontsize=12, color='black')
-    ax.set_xlabel('Thành phần Chi phí', fontsize=12, color='black')
+    ax.set_title(f'2. Cơ cấu Tổng Chi phí: {total_costs:,.2f} USD', fontsize=11, color='black')
+    ax.set_ylabel('Giá trị (USD)', fontsize=11, color='black')
+    ax.set_xlabel('Thành phần Chi phí', fontsize=11, color='black')
     ax.tick_params(axis='x', colors='black')
     ax.tick_params(axis='y', colors='black')
     ax.set_facecolor('white')
@@ -176,13 +176,13 @@ def create_tenor_sensitivity_chart(advance_amount, advance_rate, service_fee_rat
     })
 
     plt.style.use('default')
-    fig, ax = plt.subplots(figsize=(6.2, 3), facecolor='white') 
+    fig, ax = plt.subplots(figsize=(6, 3.8), facecolor='white') 
     
     bars = ax.bar(df['Kỳ hạn (Tháng)'], df['Net Cash'], color='#2196F3') 
     
-    ax.set_title('3. Độ nhạy: Net Cash theo Kỳ hạn', fontsize=14, color='black')
-    ax.set_ylabel('Net Cash (USD)', fontsize=12, color='black')
-    ax.set_xlabel('Kỳ hạn bao thanh toán', fontsize=12, color='black')
+    ax.set_title('3. Độ nhạy: Net Cash theo Kỳ hạn', fontsize=11, color='black')
+    ax.set_ylabel('Net Cash (USD)', fontsize=11, color='black')
+    ax.set_xlabel('Kỳ hạn bao thanh toán', fontsize=11, color='black')
     ax.tick_params(axis='x', colors='black')
     ax.tick_params(axis='y', colors='black')
     ax.set_facecolor('white')
@@ -210,13 +210,13 @@ def create_cost_comparison_chart(factoring_cost, lc_cost):
     
     # Biểu đồ cột so sánh
     plt.style.use('default')
-    fig, ax = plt.subplots(figsize=(7.5, 3.5), facecolor='white') 
+    fig, ax = plt.subplots(figsize=(7, 4), facecolor='white') 
     
     bars = ax.bar(data['Phương thức'], data['Chi phí'], color=['#F44336', '#2196F3']) 
     
-    ax.set_title('4. So sánh Tổng Chi phí: Factoring vs. L/C', fontsize=14, color='black')
-    ax.set_ylabel('Chi phí (USD)', fontsize=12, color='black')
-    ax.set_xlabel('Phương thức Bảo lãnh/Tài trợ', fontsize=12, color='black')
+    ax.set_title('4. So sánh Tổng Chi phí: Factoring vs. L/C', fontsize=11, color='black')
+    ax.set_ylabel('Chi phí (USD)', fontsize=11, color='black')
+    ax.set_xlabel('Phương thức Bảo lãnh/Tài trợ', fontsize=11, color='black')
     ax.tick_params(axis='x', colors='black')
     ax.tick_params(axis='y', colors='black')
     ax.set_facecolor('white')
@@ -340,5 +340,6 @@ if advance_amount and advance_rate:
         st.subheader("4. So sánh Chi phí: Factoring vs. L/C (Bảo lãnh)")
         fig_comparison = create_cost_comparison_chart(factoring_cost, lc_cost)
         st.pyplot(fig_comparison)
+
 
 
