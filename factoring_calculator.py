@@ -218,7 +218,7 @@ def create_cost_comparison_chart(factoring_cost, lc_cost):
     # Màu sắc cố định
     bars = ax.bar(data['Phương thức'], data['Chi phí'], color=['#F44336', '#2196F3']) 
     
-    ax.set_title('4. So sánh Tổng Chi phí: Factoring vs. L/C (Bảo lãnh)', fontsize=14, color='black')
+    ax.set_title('4. So sánh Tổng Chi phí: FACTORING vs. L/C (Bảo lãnh)', fontsize=16, fontweight='bold', color='black')
     ax.set_ylabel('Chi phí (USD)', fontsize=12, color='black')
     ax.set_xlabel('Phương thức Bảo lãnh/Tài trợ', fontsize=12, color='black')
     
@@ -352,5 +352,6 @@ if advance_amount and advance_rate:
         st.subheader("4. So sánh Chi phí: Factoring vs. L/C (Bảo lãnh)")
         fig_comparison = create_cost_comparison_chart(factoring_cost, lc_cost)
         st.pyplot(fig_comparison)
+
 
 
