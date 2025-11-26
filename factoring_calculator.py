@@ -242,7 +242,7 @@ if advance_amount and advance_rate:
 
         # KHU VỰC BIỂU ĐỒ 2: Dòng tiền (So sánh)
         st.subheader("2. So sánh Dòng tiền và Chi phí Giảm trừ")
-        fig_waterfall = create_waterfall_chart(results)
+        fig_waterfall = create_cost_composition_chart(results)
         st.pyplot(fig_waterfall)
         
         st.markdown("---")
@@ -256,4 +256,5 @@ if advance_amount and advance_rate:
             discount_rate_annual
         )
         st.pyplot(fig_tenor)
+
 
