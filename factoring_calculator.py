@@ -210,29 +210,39 @@ def create_cost_comparison_chart(factoring_cost, lc_cost):
     
     # Biểu đồ cột so sánh
     plt.style.use('default')
-    fig, ax = plt.subplots(figsize=(8, 4), facecolor='white') 
+    # Tăng nhẹ kích thước figsize để hỗ trợ nhãn
+    fig, ax = plt.subplots(figsize=(8.5, 4.5), facecolor='white') 
     
+    # Màu sắc cố định
     bars = ax.bar(data['Phương thức'], data['Chi phí'], color=['#F44336', '#2196F3']) 
     
-    ax.set_title('4. So sánh Tổng Chi phí: Factoring vs. L/C', fontsize=14, color='black')
+    ax.set_title('4. So sánh Tổng Chi phí: Factoring vs. L/C (Bảo lãnh)', fontsize=14, color='black')
     ax.set_ylabel('Chi phí (USD)', fontsize=12, color='black')
     ax.set_xlabel('Phương thức Bảo lãnh/Tài trợ', fontsize=12, color='black')
+    
     ax.tick_params(axis='x', colors='black')
     ax.tick_params(axis='y', colors='black')
     ax.set_facecolor('white')
-    
+
     ax.grid(axis='y', linestyle='--', alpha=0.7, color='lightgray')
     for spine in ax.spines.values():
         spine.set_edgecolor('black')
 
+    # Tối ưu hóa hiển thị nhãn giá trị
+    max_cost = max(data['Chi phí'])
+
     for bar in bars:
         height = bar.get_height()
-        ax.text(bar.get_x() + bar.get_width()/2.0, height + (max(data['Chi phí']) * 0.05),
+        # Đặt nhãn giá trị
+        ax.text(bar.get_x() + bar.get_width()/2.0, height + (max_cost * 0.03), # Tăng khoảng cách nhãn (0.03)
                 f'{height:,.0f} USD', ha='center', fontsize=10, color='black')
-    
-    plt.tight_layout()
-    return fig
 
+    # FIX LỖI CHÈN CHỮ: Điều chỉnh giới hạn trục Y (tăng hệ số an toàn lên 1.35)
+    plt.ylim(0, max_cost * 1.35) 
+    
+    # FIX LỖI CẮT CHỮ: Bắt buộc gọi tight_layout
+    plt.tight_layout() 
+    return fig
 
 # --- 6. XÂY DỰNG GIAO DIỆN STREAMLIT ---
 
@@ -340,3 +350,4 @@ if advance_amount and advance_rate:
         st.subheader("4. So sánh Chi phí: Factoring vs. L/C (Bảo lãnh)")
         fig_comparison = create_cost_comparison_chart(factoring_cost, lc_cost)
         st.pyplot(fig_comparison)
+
