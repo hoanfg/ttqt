@@ -196,6 +196,8 @@ def create_tenor_sensitivity_chart(advance_amount, advance_rate, service_fee_rat
                 f'{yval:,.0f}', ha='center', fontsize=10, color='black')
 
     ax.grid(axis='y', linestyle='--', alpha=0.7, color='lightgray')
+    max_cash = max(net_cash_data)
+    ax.set_ylim(0, max_cash * 1.15)
     plt.tight_layout()
     return fig
 
@@ -350,4 +352,5 @@ if advance_amount and advance_rate:
         st.subheader("4. So sánh Chi phí: Factoring vs. L/C (Bảo lãnh)")
         fig_comparison = create_cost_comparison_chart(factoring_cost, lc_cost)
         st.pyplot(fig_comparison)
+
 
