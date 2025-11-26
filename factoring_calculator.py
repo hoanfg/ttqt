@@ -248,12 +248,12 @@ def create_cost_comparison_chart(factoring_cost, lc_cost):
 
 # --- 6. XÂY DỰNG GIAO DIỆN STREAMLIT ---
 
-st.set_page_config(page_title="Mô Hình Chi Phí Bao Thanh Toán", layout="wide")
-st.title("💰 Công Cụ Mô Phỏng Chi Phí Bao Thanh Toán (Factoring)")
+st.set_page_config(page_title="Mô hình chi phí bao thanh toán", layout="wide")
+st.title("💰 Công cụ mô phỏng chi phí Bao thanh toán (Factoring)")
 st.markdown("---")
 
 # --- INPUTS CHÍNH (Sidebar) ---
-st.sidebar.header("Tham Số Đầu Vào Factoring")
+st.sidebar.header("Tham số đầu vào Factoring")
 
 advance_amount = st.sidebar.number_input("Khoản tiền Ứng trước (USD)", value=200000.00, min_value=1.0, step=1000.0, format="%.2f")
 advance_rate_percent = st.sidebar.slider("Tỷ lệ Ứng trước (%)", value=60, min_value=50, max_value=95, step=5)
@@ -352,6 +352,7 @@ if advance_amount and advance_rate:
         st.subheader("4. So sánh Chi phí: Factoring vs. L/C (Bảo lãnh)")
         fig_comparison = create_cost_comparison_chart(factoring_cost, lc_cost)
         st.pyplot(fig_comparison)
+
 
 
 
