@@ -113,34 +113,46 @@ def create_cost_composition_chart(results):
     total_costs = results["Tổng chi phí (Total Cost)"]
 
     if total_costs <= 0:
-        fig, ax = plt.subplots(figsize=(6, 6))
+        fig, ax = plt.subplots(figsize=(7, 3.8))
         ax.text(0.5, 0.5, "Không có chi phí để phân tích.", ha='center', va='center', fontsize=12)
         ax.axis('off')
         return fig
     
-    # Biểu đồ Tròn
-    labels = [f'Lãi suất ({results["Phần trăm Chi phí là Lãi suất (%)"]:,.1f}%)', 
-              f'Hoa hồng phí ({results["Phần trăm Chi phí là Hoa hồng (%)"]:,.1f}%)']
-    values = [discount_interest, service_fee]
+    # Dữ liệu cho biểu đồ cột so sánh
+    data = pd.DataFrame({
+        'Thành phần': ['Chi phí Lãi suất', 'Hoa hồng phí'],
+        'Giá trị': [discount_interest, service_fee]
+    }).sort_values(by='Giá trị', ascending=False)
     
-    def func_pct(pct, allvalues):
-        absolute = pct / 100. * allvalues
-        return f'{absolute:,.0f} USD'
-
+    # Màu sắc cố định: Đỏ cho Lãi suất, Vàng cho Phí (nhất quán với Pie Chart cũ)
+    colors = ['#F44336', '#FFC107']
+    
+    # Thiết lập nền trắng cho Matplotlib và kích thước
     plt.style.use('default')
-    fig, ax = plt.subplots(figsize=(6, 6), facecolor='white') 
+    fig, ax = plt.subplots(figsize=(7, 3.8), facecolor='white') 
 
-    ax.pie(
-        values, 
-        labels=labels, 
-        autopct=lambda pct: func_pct(pct, total_costs),
-        colors=['#F44336', '#FFC107'],
-        startangle=90,
-        wedgeprops={'edgecolor': 'black'}
-    )
+    bars = ax.bar(data['Thành phần'], data['Giá trị'], color=colors)
     
+    # Styling và Labels
     ax.set_title(f'2. Cơ cấu Tổng Chi phí: {total_costs:,.2f} USD', fontsize=14, color='black')
-    ax.axis('equal') 
+    ax.set_ylabel('Giá trị (USD)', fontsize=12, color='black')
+    ax.set_xlabel('Thành phần Chi phí', fontsize=12, color='black')
+    ax.tick_params(axis='x', colors='black')
+    ax.tick_params(axis='y', colors='black')
+    ax.set_facecolor('white')
+
+    # Grid và Border
+    ax.grid(axis='y', linestyle='--', alpha=0.7, color='lightgray')
+    for spine in ax.spines.values():
+        spine.set_edgecolor('black')
+
+    # Thêm nhãn giá trị
+    for bar in bars:
+        height = bar.get_height()
+        ax.text(bar.get_x() + bar.get_width()/2.0, height + (total_costs * 0.05), 
+                f'{height:,.0f} USD', ha='center', fontsize=10, color='black') 
+
+    plt.ylim(0, max(data['Giá trị']) * 1.25)
     plt.tight_layout()
     return fig
 
@@ -328,3 +340,4 @@ if advance_amount and advance_rate:
         st.subheader("4. So sánh Chi phí: Factoring vs. L/C (Bảo lãnh)")
         fig_comparison = create_cost_comparison_chart(factoring_cost, lc_cost)
         st.pyplot(fig_comparison)
+
