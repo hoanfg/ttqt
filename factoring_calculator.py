@@ -82,7 +82,7 @@ def create_main_visualization(results):
     colors = ['#4CAF50', '#FFC107', '#F44336'] 
     
     plt.style.use('default') 
-    fig, ax = plt.subplots(figsize=(9, 4.5), facecolor='white') 
+    fig, ax = plt.subplots(figsize=(8.5, 4), facecolor='white') 
     
     bars = ax.bar(data['Thành phần'], data['Giá trị (USD)'], color=colors)
     
@@ -113,7 +113,7 @@ def create_cost_composition_chart(results):
     total_costs = results["Tổng chi phí (Total Cost)"]
 
     if total_costs <= 0:
-        fig, ax = plt.subplots(figsize=(7, 3.8))
+        fig, ax = plt.subplots(figsize=(6.2, 3))
         ax.text(0.5, 0.5, "Không có chi phí để phân tích.", ha='center', va='center', fontsize=12)
         ax.axis('off')
         return fig
@@ -129,7 +129,7 @@ def create_cost_composition_chart(results):
     
     # Thiết lập nền trắng cho Matplotlib và kích thước
     plt.style.use('default')
-    fig, ax = plt.subplots(figsize=(7, 3.8), facecolor='white') 
+    fig, ax = plt.subplots(figsize=(6.2, 3), facecolor='white') 
 
     bars = ax.bar(data['Thành phần'], data['Giá trị'], color=colors)
     
@@ -176,7 +176,7 @@ def create_tenor_sensitivity_chart(advance_amount, advance_rate, service_fee_rat
     })
 
     plt.style.use('default')
-    fig, ax = plt.subplots(figsize=(7, 3.8), facecolor='white') 
+    fig, ax = plt.subplots(figsize=(6.2, 3), facecolor='white') 
     
     bars = ax.bar(df['Kỳ hạn (Tháng)'], df['Net Cash'], color='#2196F3') 
     
@@ -210,7 +210,7 @@ def create_cost_comparison_chart(factoring_cost, lc_cost):
     
     # Biểu đồ cột so sánh
     plt.style.use('default')
-    fig, ax = plt.subplots(figsize=(8, 4), facecolor='white') 
+    fig, ax = plt.subplots(figsize=(7.5, 3.5), facecolor='white') 
     
     bars = ax.bar(data['Phương thức'], data['Chi phí'], color=['#F44336', '#2196F3']) 
     
@@ -340,4 +340,5 @@ if advance_amount and advance_rate:
         st.subheader("4. So sánh Chi phí: Factoring vs. L/C (Bảo lãnh)")
         fig_comparison = create_cost_comparison_chart(factoring_cost, lc_cost)
         st.pyplot(fig_comparison)
+
 
